@@ -1,7 +1,7 @@
 import os
 import open3d as o3d
 import numpy as np
-from lib import basis, io, registration, point_sampling
+from lib import basis, icp_detail_sample, io, registration, point_sampling
 
 # 事前のdownloadコード ################################# 
 # dirname = "rgbd-dataset"
@@ -60,7 +60,7 @@ def dist_main():
 def k_tree_main():
     print('# kd-treeによる探索 ###################')
     # kd-tree構築
-    pcd = io.load_point_cloud(file_bunny00)
+    pcd = io.load_point_cloud(file_bunny000)
     pcd.paint_uniform_color([0.5, 0.5, 0.5])
     pcd_tree = registration.generate_kd_tree(pcd)
     # knn
@@ -85,10 +85,25 @@ def k_tree_main():
 
 
 # ICP ################################
+'''
+手順1. ソース点群とターゲット点群の対応付
+     * 点群データのロード
+     * voxel化: ダウンサンプリング（適当な量にする)
+     * 各点で近傍点探索
+       - 全数探索、kd-tree(クエリのk個の近傍点を抽出、クエリから指定した半径以内、ハイブリッドなどの手法がある)
+     * 各点の近傍点から特徴点を抽出
+手順2. 剛体変換の推定
+     * Point-to-Point: 剛体変換を適用した点とその対応点の距離の総和を評価
+     * Point-to-Plane: ソースの点とターゲットの面の距離の総和を評価
+手順3. 物体の姿勢のアップデート
+手順4. 収束判定(収束しない場合は1へ戻る)
+'''
+
 def icp_main():
     # ファイル読み込み
     pcd_s = io.load_point_cloud(file_bunny000)
     pcd_t = io.load_point_cloud(file_bunny045)
+    io.draw_simple([pcd_s, pcd_t], 'ICP: ref')
     # ボクセル化
     pcdv_s = point_sampling.boxelize_point(pcd_s, 0.005)
     pcdv_t = point_sampling.boxelize_point(pcd_t, 0.005)
@@ -96,7 +111,7 @@ def icp_main():
     pcdv_s.paint_uniform_color([0.0, 1.0, 0.0])
     pcdv_t.paint_uniform_color([0.0, 0.0, 1.0])
     # 表示
-    io.draw_simple([pcdv_s, pcdv_t], 'ICP: ref')
+    io.draw_simple([pcdv_s, pcdv_t], 'ICP: voxel')
     # ICP
     result = registration.icp(pcdv_s, pcdv_t, 0.05)
     # 結果確認
@@ -108,10 +123,29 @@ def icp_main():
     # 表示
     io.draw_simple([pcd_reg, pcdv_t])
 
-num = input("選択: 1.sin関数の最近傍点探索 2.kd-treeによる探索 3.ICP")
+def icp_detail():
+    # ファイル読み込み
+    pcd_s = io.load_point_cloud(file_bunny000)
+    pcd_t = io.load_point_cloud(file_bunny045)
+    io.draw_simple([pcd_s, pcd_t], 'ICP: ref')
+    # ボクセル化
+    pcdv_s = point_sampling.boxelize_point(pcd_s, 0.005)
+    pcdv_t = point_sampling.boxelize_point(pcd_t, 0.005)
+    # 色指定
+    pcdv_s.paint_uniform_color([0.0, 1.0, 0.0])
+    pcdv_t.paint_uniform_color([0.0, 0.0, 1.0])
+    # 表示
+    io.draw_simple([pcdv_s, pcdv_t], 'ICP: voxel')
+    # ICP詳細処理
+    icp_detail_sample.icp_detail(pcdv_s, pcdv_t)
+
+
+num = input("選択: 1.sin関数の最近傍点探索 2.kd-treeによる探索 3.ICP 4.ICP detail: ")
 if num == '1':
     dist_main()
 elif num == '2':
     k_tree_main()
 elif num == '3':
     icp_main()
+elif num == '4':
+    icp_detail()

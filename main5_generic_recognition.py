@@ -91,7 +91,7 @@ def segmentation():
     # filename = "./3rdparty/Open3D/examples/test_data/fragment.pcd"
     print("Loading a point cloud from", filename)
     pcd = o3d.io.read_point_cloud(filename)
-    print(pcd)
+    # print(pcd)
 
     labels = np.array(pcd.cluster_dbscan(eps=0.02, min_points=10))
 
@@ -106,6 +106,6 @@ def segmentation():
                                     lookat=[2.1813, 2.0619, 2.0999],
                                     up=[0.1204, -0.9852, 0.1215])
 
-# ransac_plane()
+ransac_plane()
 # ransac_sphere()
-segmentation()
+# segmentation()

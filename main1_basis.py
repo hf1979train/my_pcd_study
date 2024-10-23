@@ -68,13 +68,16 @@ def mesh_calculation(mesh):
     print("外れ値除去: 半径")
     outl_rad= outlier.remove_statistical_outlier(pcd_mesh)
     io.draw_inlier_outlier_mesh(mesh, pcd_mesh, outl_rad, *io.get_draw_parameter(), "外れ値除去: 半径")
+    print("法線推定")
+    pcd_normal = normal.estimate_vertex_normals(pcd_mesh)
+    io.draw_simple([pcd_normal], '法線推定: 点群処置後', point_show_normal=True)
     print("法線推定(mesh)")
     mesh_normal = normal.calc_vertex_normals_mesh(mesh)
     io.draw_simple([mesh_normal], '法線推定: 処置後(wireframeなし)')
     io.draw_simple_mesh([mesh_normal], '法線推定: 処置後(wireframeあり)')
 
 
-num = input("描画する番号を入力してください.¥¥n1.pcd(bathtub)¥n2.pcd(fragment)¥n3.mesh(axes)¥n4.mesh(knot)")
+num = input("1.pcd(bathtub) 2.pcd(fragment) 3.mesh(axes) 4.mesh(knot) : ")
 if num == "1":
     # pcd1. bathtub -------------------------
     print("# pcd1. bathtub ##########")
